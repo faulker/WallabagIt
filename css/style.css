@@ -1,0 +1,63 @@
+@font-face
+{
+    font-family: "DroidSansMono";
+    src: url("../fonts/DroidSansMono.ttf") format("truetype");
+}
+
+html
+{
+    overflow: hidden;
+}
+
+body
+{
+    width: 450px;
+    height: 355px;
+    overflow: hidden;
+    font-family: "DroidSansMono", monospace;
+}
+
+#wallabags
+{
+    margin-top: 52px;
+    height: 250px;
+    overflow-y: auto;
+}
+
+#wallabags .glyphicon
+{
+    padding:0 3px;
+}
+
+.navbar-toggle
+{
+    width: 48px;
+}
+
+.table tbody tr:first-child td
+{
+    border-top: 0px;
+}
+
+.nav
+{
+    cursor:pointer;cursor:hand;
+}
+
+.navbar-btn
+{
+    margin-left:15px;
+    margin-right:15px;
+}
+
+.flagged,
+.unflagged:hover
+{
+    color: #666;
+}
+
+.unflagged,
+.flagged:hover
+{
+    color: #eee;
+}
