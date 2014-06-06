@@ -249,7 +249,7 @@ $(document).ready(function()
         {
             var tablink = tabs[0].url;
             var title = tabs[0].title;
-            $( '#add-link' ).text("Adding...");
+            $( '#add-link' ).html("<span class='glyphicon glyphicon-file'></span> Adding...");
             addItem( apiFeedURL(), tablink, title ).done(function()
             {
                 $( '#add-link' ).html( "<span class='glyphicon glyphicon-file'></span> Add Page" );
