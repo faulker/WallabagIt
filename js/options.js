@@ -1,3 +1,30 @@
+var apiVersion = 0;
+var apiURLWorking = false;
+
+function apiFeedURL()
+{
+    return $( "#url" ).val() + '/' + $( "#apidir" ).val() + '/';
+}
+
+function checkApiURL( url )
+{
+    var checking_api = $.Deferred();
+    $.getJSON( url, { o: 'check' }, function( data )
+    {
+        if(data.api == true)
+        {
+            apiURLWorking = true;
+            apiVersion = data.apiVersion;
+            checking_api.resolve( true );
+        }
+    }).fail(function()
+    {
+        apiURLWorking = false;
+        checking_api.resolve( false );
+    });
+    return checking_api.promise();
+}
+
 function getLinkOption()
 {
     var active = "";
@@ -48,6 +75,20 @@ $(document).ready(function()
             chrome.storage.local.set({ 'apiDir': api_dir });
         }
 
+        checkApiURL( apiFeedURL() ).done(function( data )
+        {
+            if( apiURLWorking )
+            {
+                $( "#requirementInfo" ).removeClass("list-group-item-danger").addClass("list-group-item-success");
+                $( "#apiStatus" ).text("API installed and working!");
+            }
+            else
+            {
+                $( "#requirementInfo" ).addClass("list-group-item-danger").removeClass("list-group-item-success");
+                $( "#apiStatus" ).text("URL is incorrect or API is not installed!");
+            }
+        });
+
         chrome.storage.local.set({ 'urlOption': getLinkOption() }); // Save link option
 
         $( ".alert" ).alert().fadeOut();
@@ -94,5 +135,19 @@ document.addEventListener('DOMContentLoaded', function ()
     chrome.storage.local.get('apiDir', function(result)
     {
         $( "#apidir" ).val( result.apiDir );
+
+        checkApiURL( apiFeedURL() ).done(function( data )
+        {
+            if( apiURLWorking )
+            {
+                $( "#requirementInfo" ).removeClass("list-group-item-danger").addClass("list-group-item-success");
+                $( "#apiStatus" ).text("API installed and working!");
+            }
+            else
+            {
+                $( "#requirementInfo" ).addClass("list-group-item-danger").removeClass("list-group-item-success");
+                $( "#apiStatus" ).text("URL is incorrect or API is not installed!");
+            }
+        });
     });
 });
