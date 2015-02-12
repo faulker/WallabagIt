@@ -29,6 +29,11 @@ body
     padding:0 3px;
 }
 
+#wallabags .actions
+{
+    padding:8px 2px;
+}
+
 .navbar-toggle
 {
     width: 48px;
@@ -41,7 +46,8 @@ body
 
 .nav
 {
-    cursor:pointer;cursor:hand;
+    cursor:pointer;
+    cursor:hand;
 }
 
 .navbar-btn

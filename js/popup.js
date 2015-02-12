@@ -177,9 +177,9 @@ function loadItem( title, link, id, fav, archived )
         archived = "unflagged";
     }
 
-    var html_item = "<tr id='" + id + "'>"
-                + "<td><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
-                + "<td>"
+    var html_item = "<tr id='" + id + "' class='bags'>"
+                + "<td class='links'><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
+                + "<td class='actions'>"
                 + "<span class='glyphicon glyphicon-ok " + archived + "' data-id='" + id + "' title='Archive it'></span>"
                 + "<span class='glyphicon glyphicon-star " + fav + "' data-id='" + id + "' title='Add to favorites'></span>"
                 + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function ()
     {
         updateFeed({ unread: true, archive: true, fav: true });
         getFeed( "unread" );
+        $( "#wallabagIt-link" ).attr( 'href', storage.url );
     });
 });
 

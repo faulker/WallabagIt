@@ -6,7 +6,7 @@
     "icons": { "16": "img/wallabag-icon-48.png",
                "48": "img/wallabag-icon-128.png",
                "128": "img/wallabag-icon-128.png" },
-    "version": "0.6",
+    "version": "0.6.1",
     "homepage_url": "https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm",
     "options_page": "options.html",
 
