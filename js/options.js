@@ -1,153 +1,136 @@
-var apiVersion = 0;
-var apiURLWorking = false;
-
-function apiFeedURL()
+$(function ()
 {
-    return $( "#url" ).val() + '/' + $( "#apidir" ).val() + '/';
-}
+    var wIt = window.wIt = window.wIt || {};
 
-function checkApiURL( url )
-{
-    var checking_api = $.Deferred();
-    $.getJSON( url, { o: 'check' }, function( data )
+    wIt.v1       = {};
+    wIt.v2       = {};
+    wIt.settings = {
+        v1: {},
+        v2: {},
+        url: '',
+        linking: 'wallabag',
+        version: 2
+    };
+
+    wIt.linkOptions = function ()
     {
-        if(data.api == true)
+        var active = "";
+        $(".link-options label").each(function (index)
         {
-            apiURLWorking = true;
-            apiVersion = data.apiVersion;
-            checking_api.resolve( true );
-        }
-    }).fail(function()
-    {
-        apiURLWorking = false;
-        checking_api.resolve( false );
-    });
-    return checking_api.promise();
-}
-
-function getLinkOption()
-{
-    var active = "";
-    $( ".link-options label" ).each(function( index )
-    {
-        if( $( this ).hasClass( "active" ) )
-        {
-            active = $( this ).find( "input" ).attr( "name" );
-        }
-    });
-
-    switch( active )
-    {
-        case "opt-wallabag-url":
-            return "wallabag";
-            break;
-        case "opt-page-url":
-            return "page";
-            break;
-        default:
-            return "wallabag";
-    }
-}
-
-$(document).ready(function()
-{
-    $( ".alert" ).alert().hide();
-    $( "#save_options" ).click(function()
-    {
-        // Save Wallabag URL
-        var url = $( "#url" ).val();
-        if( !/^(http|https):\/\//i.test(url) )
-        {
-            url = "http://" + url;
-        }
-        $( "#url" ).val(url);
-        chrome.storage.local.set({'url': url})
-        chrome.storage.local.set({ 'apiKey': $( "#apikey" ).val() }); // Save API key
-
-        // Save API dir
-        var api_dir = $( "#apidir" ).val();
-        if( api_dir == "" )
-        {
-            chrome.storage.local.set({ 'apiDir': "api" });
-        }
-        else
-        {
-            chrome.storage.local.set({ 'apiDir': api_dir });
-        }
-
-        checkApiURL( apiFeedURL() ).done(function( data )
-        {
-            if( apiURLWorking )
+            if ($(this).hasClass("active"))
             {
-                $( "#requirementInfo" ).removeClass("list-group-item-danger").addClass("list-group-item-success");
-                $( "#apiStatus" ).text("API installed and working!");
-            }
-            else
-            {
-                $( "#requirementInfo" ).addClass("list-group-item-danger").removeClass("list-group-item-success");
-                $( "#apiStatus" ).text("URL is incorrect or API is not installed!");
+                active = $(this).find("input").attr("name");
             }
         });
 
-        chrome.storage.local.set({ 'urlOption': getLinkOption() }); // Save link option
-
-        $( ".alert" ).alert().fadeOut();
-        $( ".alert" ).alert().fadeIn();
-    });
-
-    var version = chrome.app.getDetails().version;
-    $( "#version" ).html( "Version: <strong>" + version +"</strong>" );
-
-    $( "#clear_options" ).click(function()
-    {
-        chrome.storage.local.clear();
-    });
-});
-
-document.addEventListener('DOMContentLoaded', function ()
-{
-    chrome.storage.local.get('url', function(result)
-    {
-        $( "#url" ).val( result.url );
-    });
-    
-    chrome.storage.local.get('urlOption', function(result)
-    {
-        switch( result.urlOption )
+        switch (active)
         {
-            case "wallabag":
-                $( "#wallabag-url" ).parent().addClass( "active" );
+            case "opt-wallabag-url":
+                return "wallabag";
                 break;
-            case "page":
-                $( "#page-url" ).parent().addClass( "active" );
+            case "opt-page-url":
+                return "page";
                 break;
             default:
-                $( "#wallabag-url" ).parent().addClass( "active" );
+                return "wallabag";
+        }
+    };
+
+    wIt.setLinking = function ()
+    {
+        var $page     = $("#page-url");
+        var $wallabag = $("#wallabag-url");
+
+        switch (wIt.settings.linking)
+        {
+            case "page":
+                $page.attr('checked', 'checked');
+                $page.parent().addClass("active");
+                break;
+            case "wallabag":
+            default:
+                $wallabag.attr('checked', 'checked');
+                $wallabag.parent().addClass("active");
                 break;
         }
-    });
+    };
 
-    chrome.storage.local.get('apiKey', function(result)
+    wIt.setVersion = function ()
     {
-        $( "#apikey" ).val( result.apiKey );
-    });
+        var btnv1 = $('#opt-wallabag-v1');
+        var btnv2 = $('#opt-wallabag-v2');
 
-    chrome.storage.local.get('apiDir', function(result)
-    {
-        $( "#apidir" ).val( result.apiDir );
-
-        checkApiURL( apiFeedURL() ).done(function( data )
+        switch (wIt.settings.version)
         {
-            if( apiURLWorking )
+            case '1':
+            case 1:
+                btnv1.attr('checked', 'checked');
+                btnv1.parent().addClass('active');
+                $('#wallabag-v2').hide();
+                break;
+            case '2':
+            case 2:
+            default:
+                btnv2.attr('checked', 'checked');
+                btnv2.parent().addClass('active');
+                $('#wallabag-v1').hide();
+        }
+    };
+
+    wIt.loadSettings = function ()
+    {
+        var loaded = $.Deferred();
+        chrome.storage.local.get('settings', function (results)
+        {
+            if (results.settings != undefined)
             {
-                $( "#requirementInfo" ).removeClass("list-group-item-danger").addClass("list-group-item-success");
-                $( "#apiStatus" ).text("API installed and working!");
+                wIt.settings = results.settings;
             }
-            else
-            {
-                $( "#requirementInfo" ).addClass("list-group-item-danger").removeClass("list-group-item-success");
-                $( "#apiStatus" ).text("URL is incorrect or API is not installed!");
-            }
+            loaded.resolve(true);
         });
+        return loaded.promise();
+    };
+
+    // Get app version and display it
+    var version = chrome.app.getDetails().version;
+    $("#version").html("Version: <strong>" + version + "</strong>");
+
+    $(".alert").alert().hide();
+
+    // Save all settings
+    $("#save-settings").click(function ()
+    {
+        var url = $('#api-url').val();
+        chrome.storage.local.set({'url_option': wIt.linkOptions()}); // Save link option
+        wIt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
+
+        wIt.v1.save();
+        wIt.v2.save();
+
+        chrome.storage.local.set({'settings': wIt.settings});
+    });
+
+    // Change Wallabag version
+    $("input[name='opt-wallabag-api']").change(function ()
+    {
+        wIt.settings.version = $(this).val();
+        $('#wallabag-v2').toggle();
+        $('#wallabag-v1').toggle();
+    });
+
+    // Change linking version
+    $("input[name='opt-linking']").change(function ()
+    {
+        wIt.settings.linking = $(this).val();
+    });
+
+    // loading settings
+    wIt.loadSettings().done(function ()
+    {
+        wIt.setVersion();
+        wIt.setLinking();
+
+        wIt.v1.load();
+        wIt.v2.load();
     });
 });

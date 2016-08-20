@@ -1,86 +1,161 @@
 <!doctype html>
 <html>
-    <head>
-        <title>Options for WallabagIt</title>
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-    </head>
-    <body>
-        <div class="container">
-            <div class="row">
-                <div class="page-header">
-                    <h2>WallabagIt Options</h2>
-                </div>
+<head>
+    <title>Options for WallabagIt</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="page-header col-md-12">
+            <h2>WallabagIt Options</h2>
+        </div>
+    </div>
 
-                <ul class="list-group col-md-4">
+    <div class="row">
+        <div class="col-md-4">
+            <ul class="list-group">
+                <li class="list-group-item text-center">
+                    <div class="btn-group" data-toggle="buttons">
+                        <label class="btn btn-default">
+                            <input type="radio" name="opt-wallabag-api" data-version="2" value="2" id="opt-wallabag-v2" autocomplete="off"> Wallabag v2 API
+                        </label>
+                        <label class="btn btn-default">
+                            <input type="radio" name="opt-wallabag-api" data-version="1" value="1" id="opt-wallabag-v1" autocomplete="off"> Wallabag v1 API
+                        </label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Wallabag v2 -->
+            <div id="wallabag-v2">
+                <ul class="list-group">
                     <li class="list-group-item">
-                        <label>API Key</label> <small>( Required )</small>
+                        <label>API Client ID</label>
+                        <small>( Required )</small>
                         <div class="input-group">
                             <span class="input-group-addon"><span class="glyphicon glyphicon-cloud"></span></span>
-                            <input type="text" class="form-control" placeholder="API Key" id="apikey">
+                            <input type="text" class="form-control" placeholder="Client ID" id="api-client-id">
                         </div>
                     </li>
                     <li class="list-group-item">
-                        <label>Wallabag URL</label> <small>( Required )</small>
+                        <label>API Client Secret</label>
+                        <small>( Required )</small>
                         <div class="input-group">
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-globe"></span></span>
-                            <input type="text" class="form-control" placeholder="Wallabag URL" id="url">
-                        </div>
-                    </li>
-                </ul>
-                <ul class="list-group col-md-3">
-                    <li class="list-group-item">
-                        <label>Open link using: </label>
-                        <div class="btn-group link-options" data-toggle="buttons">
-                            <label class="btn btn-primary">
-                                <input type="radio" name="opt-wallabag-url" id="wallabag-url"> Wallabag URL
-                            </label>
-                            <label class="btn btn-primary">
-                                <input type="radio" name="opt-page-url" id="page-url"> Page URL
-                            </label>
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                            <input type="text" class="form-control" placeholder="Client Secret" id="api-client-secret">
                         </div>
                     </li>
                     <li class="list-group-item">
-                        <label>API directory name</label> <small>( Optional )</small>
+                        <label>Username</label>
+                        <small>( Required )</small>
                         <div class="input-group">
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-folder-open"></span></span>
-                            <input type="text" class="form-control" placeholder="api" id="apidir">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-user"></span></span>
+                            <input type="text" class="form-control" placeholder="Your Wallabag username" id="wallabag-username">
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <label>Password</label>
+                        <small>( Required )</small>
+                        <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-lock"></span></span>
+                            <input type="password" class="form-control" placeholder="Your Wallabag password" id="wallabag-password">
                         </div>
                     </li>
                 </ul>
-                <ul class="list-group col-md-5">
+            </div>
+            <!-- Wallabag v1 -->
+            <div id="wallabag-v1">
+                <ul class="list-group">
                     <li class="list-group-item">
-                        Created by <strong><a href="mailto:winter@faulk.me"><strong>Winter Faulk</strong></a>
-                        ( <a href="http://faulk.me">faulk.me</a> |
-                        <a href="https://github.com/faulker">github.com/faulker</a> )
-                        </strong>
-                    </li>
-                    <li class="list-group-item" id="version">
-                        Version: 
+                        <label>API Key</label>
+                        <small>( Required )</small>
+                        <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-cloud"></span></span>
+                            <input type="text" class="form-control" placeholder="API Key" id="api-key">
+                        </div>
                     </li>
                     <li class="list-group-item">
-                        <strong>Requires</strong> that the <a href="https://github.com/faulker/wallabag_api"><strong>Wallabag API</strong></a> plugin be added to your Wallabag web site.
+                        <label>API Path</label>
+                        <small>( Required )</small>
+                        <div class="input-group">
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-file"></span></span>
+                            <input type="text" class="form-control" placeholder="API folder name (default: api)" id="api-folder">
+                        </div>
                     </li>
-                    <li class="list-group-item list-group-item-danger" id="requirementInfo">
-                        <strong>API URL Status:</strong> <span id="apiStatus">URL is incorrect or API is not installed</span>
+                    <li class="list-group-item">
+                        <strong>Requires</strong> that the
+                        <a href="https://github.com/faulker/wallabag_api"><strong>Wallabag API</strong></a> plugin be added to your Wallabag web site.
                     </li>
                 </ul>
             </div>
-            <div class="row">
-                
-            </div>
-            <div class="row">
-                <ul class="list-group col-md-4">
-                    <li class="list-group-item">
-                        <button type="button" class="btn btn-success" id="save_options">Save</button>
-                        <!--<button type="button" class="btn btn-default pull-right" id="clear_options">Remove Local Data</button>//-->
-                    </li>
-                </ul>
-                <div class="alert alert-success alert-dismissable col-md-2">Changes saved!</div>
-            </div>
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <label>Wallabag URL</label>
+                    <small>( Required )</small>
+                    <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-globe"></span></span>
+                        <input type="text" class="form-control" placeholder="Your Wallabag URL" id="api-url">
+                    </div>
+                </li>
+            </ul>
         </div>
-    </body>
 
-    <script src="js/jquery-2.1.1.min.js" type="text/javascript"></script>
-    <script src="js/bootstrap.min.js" type="text/javascript"></script>
-    <script src="js/options.js" type="text/javascript"></script>
+
+        <div class="col-md-3">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <label>Open link using: </label>
+                    <div class="btn-group link-options" data-toggle="buttons">
+                        <label class="btn btn-primary">
+                            <input type="radio" name="opt-linking" id="wallabag-url" value="wallabag"> Wallabag URL
+                        </label>
+                        <label class="btn btn-primary">
+                            <input type="radio" name="opt-linking" id="page-url" value="page"> Page URL
+                        </label>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col-md-5">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    Created by <strong><a href="mailto:winter@faulk.me"><strong>Winter Faulk</strong></a>
+                    ( <a href="http://faulk.me">faulk.me</a> |
+                    <a href="https://github.com/faulker">github.com/faulker</a> )
+                </strong>
+                </li>
+                <li class="list-group-item" id="version">
+                    Version:
+                </li>
+                <li class="list-group-item list-group-item-danger" id="requirementInfo">
+                    <strong>API Status:</strong>
+                    <span id="apiStatus">URL is incorrect or API is not installed</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-4">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <button type="button" class="btn btn-success" id="save-settings">Save</button>
+                </li>
+            </ul>
+            <div class="alert alert-success alert-dismissable">Changes saved!</div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js" type="text/javascript"></script>
+<script src="js/options.js" type="text/javascript"></script>
+<script src="js/v1.options.js" type="text/javascript"></script>
+<script src="js/v2.options.js" type="text/javascript"></script>
 </html>
