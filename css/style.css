@@ -12,14 +12,14 @@ html
 body
 {
     width: 450px;
-    height: 355px;
+    height: 360px;
     overflow: hidden;
     font-family: "DroidSansMono", monospace;
 }
 
 #wallabags
 {
-    margin-top: 52px;
+    margin-top: 58px;
     height: 250px;
     overflow-y: auto;
 }
@@ -27,6 +27,11 @@ body
 #wallabags .glyphicon
 {
     padding:0 3px;
+}
+
+#wallabags .actions
+{
+    padding:8px 2px;
 }
 
 .navbar-toggle
@@ -41,7 +46,8 @@ body
 
 .nav
 {
-    cursor:pointer;cursor:hand;
+    cursor:pointer;
+    cursor:hand;
 }
 
 .navbar-btn

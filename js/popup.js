@@ -3,47 +3,33 @@
  *
  * @author     Winter Faulk <winter@faulk.me>
  */
-
-var storage =
-{
-    url: "",
-    api_key: "",
-    api_dir: "",
-    url_opt: ""
-}
+var storage = {
+    v1: {},
+    v2: {},
+    url: '',
+    linking: 'wallabag',
+    version: 2
+};
 
 function apiFeedURL()
 {
-    if( storage.api_dir == "" )
+    if( storage.v1.folder == "" )
     {
-        storage.api_dir = "api";
+        storage.v1.folder = "api";
     }
-    return storage.url + '/' + storage.api_dir + '/';
+    return storage.url + '/' + storage.v1.folder + '/';
 }
 
 function loadStorage()
 {
     var storage_loaded = $.Deferred();
-    chrome.storage.local.get('url', function(result)
-    {
-        storage.url = result.url;
-    });
 
-    chrome.storage.local.get('apiKey', function(result)
+    chrome.storage.local.get('settings', function(result)
     {
-        storage.api_key = result.apiKey;
+        storage = result.settings;
         storage_loaded.resolve( true );
     });
 
-    chrome.storage.local.get('apiDir', function(result)
-    {
-        storage.api_dir = result.apiDir;
-    });
-
-    chrome.storage.local.get('urlOption', function(result)
-    {
-        storage.url_opt = result.urlOption;
-    });
     return storage_loaded.promise();
 }
 
@@ -56,7 +42,6 @@ $.ajaxSetup({ cache: false });
 // Get a feed [Unread, Favorites, Archived]
 function getFeed( opt )
 {
-    var feed = {};
     switch( opt )
     {
         case "unread":
@@ -89,7 +74,7 @@ function getFeed( opt )
 
 function updateFeed( feed )
 {
-    if( storage.api_key == "" || typeof( storage.api_key ) == "undefined" )
+    if( storage.v1.key == "" || typeof( storage.v1.key ) == "undefined" )
     {
          openOptions();
     }
@@ -115,7 +100,7 @@ function loadFeed( data )
         var fav = data[i].is_fav;
         var archived = data[i].is_read;
         var link = link_url + id;
-        switch( storage.url_opt )
+        switch( storage.linking )
         {
             case "wallabag":
                 link = link_url + id;
@@ -177,9 +162,9 @@ function loadItem( title, link, id, fav, archived )
         archived = "unflagged";
     }
 
-    var html_item = "<tr id='" + id + "'>"
-                + "<td><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
-                + "<td>"
+    var html_item = "<tr id='" + id + "' class='bags'>"
+                + "<td class='links'><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
+                + "<td class='actions'>"
                 + "<span class='glyphicon glyphicon-ok " + archived + "' data-id='" + id + "' title='Archive it'></span>"
                 + "<span class='glyphicon glyphicon-star " + fav + "' data-id='" + id + "' title='Add to favorites'></span>"
                 + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
@@ -196,7 +181,7 @@ function changeItem( feedURL, opt, id )
         $( '#' + id ).remove();
     }
 
-    var req = $.getJSON( feedURL, { r: 'change', o: opt, id: id, apikey: storage.api_key }, function( data )
+    var req = $.getJSON( feedURL, { r: 'change', o: opt, id: id, apikey: storage.v1.key }, function( data )
     {
         updateFeed({ unread: true, archive: true, fav: true });
     });
@@ -206,7 +191,7 @@ function changeItem( feedURL, opt, id )
 function removeItem( feedURL, id )
 {
     $( '#' + id ).remove();
-    var req = $.getJSON( feedURL, { r: 'delete', id: id, apikey: storage.api_key }, function( data )
+    var req = $.getJSON( feedURL, { r: 'delete', id: id, apikey: storage.v1.key }, function( data )
     {
         updateFeed({ unread: true, archive: true, fav: true });
     });
@@ -216,7 +201,7 @@ function removeItem( feedURL, id )
 function addItem( feedURL, url, title )
 {
     var adding_item = $.Deferred();
-    var req = $.getJSON( feedURL, { r: 'add', url: url, title: title, apikey: storage.api_key }, function( data )
+    var req = $.getJSON( feedURL, { r: 'add', url: url, title: title, apikey: storage.v1.key }, function( data )
     {
         updateFeed({ unread: true, archive: true, fav: true });
         adding_item.resolve( true );
@@ -249,7 +234,7 @@ $(document).ready(function()
         {
             var tablink = tabs[0].url;
             var title = tabs[0].title;
-            $( '#add-link' ).text("Adding...");
+            $( '#add-link' ).html("<span class='glyphicon glyphicon-file'></span> Adding...");
             addItem( apiFeedURL(), tablink, title ).done(function()
             {
                 $( '#add-link' ).html( "<span class='glyphicon glyphicon-file'></span> Add Page" );
@@ -338,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function ()
     {
         updateFeed({ unread: true, archive: true, fav: true });
         getFeed( "unread" );
+        $( "#wallabagIt-link" ).attr( 'href', storage.url );
     });
 });
 

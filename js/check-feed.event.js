@@ -4,68 +4,66 @@
  * @author     Winter Faulk <winter@faulk.me>
  */
 
-var storage =
-{
-    url: "",
-    api_key: "",
-    api_dir: ""
-}
+var storage = {
+    v1: {},
+    v2: {},
+    url: '',
+    linking: 'wallabag',
+    version: 2
+};
 
 function loadStorage()
 {
     var storage_loaded = $.Deferred();
-    chrome.storage.local.get('url', function(result)
+    chrome.storage.local.get('settings', function (result)
     {
-        storage.url = result.url;
+        storage = result.settings;
+        storage_loaded.resolve(true);
     });
-
-    chrome.storage.local.get('apiKey', function(result)
-    {
-        storage.api_key = result.apiKey;
-        storage_loaded.resolve( true );
-    });
-
-    chrome.storage.local.get('apiDir', function(result)
-    {
-        storage.api_dir = result.apiDir;
-    });
-
-    if( storage.api_dir == "" )
-    {
-        storage.api_dir = "api";
-    }
     return storage_loaded.promise();
 }
 
 // Stop the getJSON calls from caching the results.
-$.ajaxSetup({ cache: false });
+$.ajaxSetup({cache: false});
 
-chrome.runtime.onMessage.addListener( function( msg, sender, sendResponse )
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse)
 {
-    loadStorage().done(function()
+    loadStorage().done(function ()
     {
-        var apiFeedURL = storage.url + '/' + storage.api_dir + '/';
-        if( msg.fav )
+        var apiFeedURL = storage.url + '/' + storage.v1.folder + '/';
+        if (msg.fav)
         {
-            var req = $.getJSON( apiFeedURL, { r: 'get', o: 'fav', apikey: storage.api_key }, function( data )
+            var req = $.getJSON(apiFeedURL, {
+                r: 'get',
+                o: 'fav',
+                apikey: storage.v1.key
+            }, function (data)
             {
-                chrome.storage.local.set( { 'feedFav': data } );
+                chrome.storage.local.set({'feedFav': data});
             });
         }
-        
-        if( msg.archive )
+
+        if (msg.archive)
         {
-            var req = $.getJSON( apiFeedURL, { r: 'get', o: 'archive', apikey: storage.api_key }, function( data )
+            var req = $.getJSON(apiFeedURL, {
+                r: 'get',
+                o: 'archive',
+                apikey: storage.v1.key
+            }, function (data)
             {
-                chrome.storage.local.set( { 'feedArchive': data } );
+                chrome.storage.local.set({'feedArchive': data});
             });
         }
-        
-        if( msg.unread )
+
+        if (msg.unread)
         {
-            var req = $.getJSON( apiFeedURL, { r: 'get', o: 'all', apikey: storage.api_key }, function( data )
+            var req = $.getJSON(apiFeedURL, {
+                r: 'get',
+                o: 'all',
+                apikey: storage.v1.key
+            }, function (data)
             {
-                chrome.storage.local.set( { 'feedUnread': data } );
+                chrome.storage.local.set({'feedUnread': data});
             });
         }
 
