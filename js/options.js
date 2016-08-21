@@ -1,10 +1,10 @@
 $(function ()
 {
-    var wIt = window.wIt = window.wIt || {};
+    var wItOpt = window.wItOpt = window.wItOpt || {};
 
-    wIt.v1       = {};
-    wIt.v2       = {};
-    wIt.settings = {
+    wItOpt.v1       = {};
+    wItOpt.v2       = {};
+    wItOpt.settings = {
         v1: {},
         v2: {},
         url: '',
@@ -12,7 +12,7 @@ $(function ()
         version: 2
     };
 
-    wIt.linkOptions = function ()
+    wItOpt.linkOptions = function ()
     {
         var active = "";
         $(".link-options label").each(function (index)
@@ -36,12 +36,12 @@ $(function ()
         }
     };
 
-    wIt.setLinking = function ()
+    wItOpt.setLinking = function ()
     {
         var $page     = $("#page-url");
         var $wallabag = $("#wallabag-url");
 
-        switch (wIt.settings.linking)
+        switch (wItOpt.settings.linking)
         {
             case "page":
                 $page.attr('checked', 'checked');
@@ -55,12 +55,12 @@ $(function ()
         }
     };
 
-    wIt.setVersion = function ()
+    wItOpt.setVersion = function ()
     {
         var btnv1 = $('#opt-wallabag-v1');
         var btnv2 = $('#opt-wallabag-v2');
 
-        switch (wIt.settings.version)
+        switch (wItOpt.settings.version)
         {
             case '1':
             case 1:
@@ -77,18 +77,33 @@ $(function ()
         }
     };
 
-    wIt.loadSettings = function ()
+    wItOpt.loadSettings = function ()
     {
         var loaded = $.Deferred();
-        chrome.storage.local.get('settings', function (results)
+        chrome.storage.local.get('wallabagItSettings', function (results)
         {
-            if (results.settings != undefined)
+            if (results.wallabagItSettings != undefined)
             {
-                wIt.settings = results.settings;
+                wItOpt.settings = results.wallabagItSettings;
+
             }
             loaded.resolve(true);
         });
         return loaded.promise();
+    };
+
+    wItOpt.updateApiStatus = function(status)
+    {
+        if (status)
+        {
+            $("#requirementInfo").removeClass("list-group-item-danger").addClass("list-group-item-success");
+            $("#apiStatus").text("API is working!");
+        }
+        else
+        {
+            $("#requirementInfo").addClass("list-group-item-danger").removeClass("list-group-item-success");
+            $("#apiStatus").text("There is an issue with the API settings!");
+        }
     };
 
     // Get app version and display it
@@ -101,19 +116,36 @@ $(function ()
     $("#save-settings").click(function ()
     {
         var url = $('#api-url').val();
-        chrome.storage.local.set({'url_option': wIt.linkOptions()}); // Save link option
-        wIt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
+        wItOpt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
 
-        wIt.v1.save();
-        wIt.v2.save();
+        wItOpt.v1.save();
+        wItOpt.v2.save();
 
-        chrome.storage.local.set({'settings': wIt.settings});
+        switch(wItOpt.settings.version)
+        {
+            case '1':
+            case 1:
+                wItOpt.v1.checkUrl(url).done(function(status)
+                {
+                    wItOpt.updateApiStatus(status);
+                });
+                break;
+            case '2':
+            case 2:
+            default:
+                wItOpt.v2.checkUrl(url).done(function(status)
+                {
+                    wItOpt.updateApiStatus(status);
+                });
+        }
+
+        chrome.storage.local.set({'wallabagItSettings': wItOpt.settings});
     });
 
     // Change Wallabag version
     $("input[name='opt-wallabag-api']").change(function ()
     {
-        wIt.settings.version = $(this).val();
+        wItOpt.settings.version = $(this).val();
         $('#wallabag-v2').toggle();
         $('#wallabag-v1').toggle();
     });
@@ -121,16 +153,16 @@ $(function ()
     // Change linking version
     $("input[name='opt-linking']").change(function ()
     {
-        wIt.settings.linking = $(this).val();
+        wItOpt.settings.linking = $(this).val();
     });
 
     // loading settings
-    wIt.loadSettings().done(function ()
+    wItOpt.loadSettings().done(function ()
     {
-        wIt.setVersion();
-        wIt.setLinking();
+        wItOpt.setVersion();
+        wItOpt.setLinking();
 
-        wIt.v1.load();
-        wIt.v2.load();
+        wItOpt.v1.load();
+        wItOpt.v2.load();
     });
 });
