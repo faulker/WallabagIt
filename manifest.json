@@ -12,7 +12,7 @@
 
     "background":
     {
-        "scripts": ["js/jquery-3.1.0.min.js", "js/check-feed.event.js"],
+        "scripts": ["js/jquery-3.1.0.min.js", "js/api.event.js", "js/v2.auth.js"],
         "persistent": false
     },
 

@@ -3,348 +3,575 @@
  *
  * @author     Winter Faulk <winter@faulk.me>
  */
-var storage = {
-    v1: {},
-    v2: {},
-    url: '',
-    linking: 'wallabag',
-    version: 2
-};
-
-function apiFeedURL()
+$(function ()
 {
-    if( storage.v1.folder == "" )
+    // -------------------
+    // Init
+    // --------------------------------
+    var wItPop = window.wIt = window.wIt || {};
+
+    wItPop.v1       = {};
+    wItPop.v2       = {};
+    wItPop.settings = {
+        v1: {},
+        v2: {},
+        url: '',
+        linking: 'wallabag',
+        version: 2
+    };
+    wItPop.cache    = {
+        unread: {},
+        archive: {},
+        fav: {}
+    };
+    wItPop.feed     = {};
+    wItPop.tab      = {};
+    wItPop.item     = {};
+
+    // Stop the getJSON calls from caching the results.
+    $.ajaxSetup({cache: false});
+
+    var $wallabags = $('#wallabags'),
+        $openOpt   = $('.open-options'),
+        $tab       = $('#selected-tab'),
+        $glyph     = $('#selected-glyph'),
+        $loading   = $('#loading-img');
+
+    // -------------------
+    // Functions
+    // --------------------------------
+    wItPop.v1.url = function ()
     {
-        storage.v1.folder = "api";
-    }
-    return storage.url + '/' + storage.v1.folder + '/';
-}
-
-function loadStorage()
-{
-    var storage_loaded = $.Deferred();
-
-    chrome.storage.local.get('settings', function(result)
-    {
-        storage = result.settings;
-        storage_loaded.resolve( true );
-    });
-
-    return storage_loaded.promise();
-}
-
-
-$( '#loading-img' ).hide(); // Hide the loading icon.
-
-// Stop the getJSON calls from caching the results.
-$.ajaxSetup({ cache: false });
-
-// Get a feed [Unread, Favorites, Archived]
-function getFeed( opt )
-{
-    switch( opt )
-    {
-        case "unread":
-            chrome.storage.local.get('feedUnread', function( results )
-            {
-                loadFeed( results.feedUnread );
-            });
-            break;
-        case "fav":
-            chrome.storage.local.get('feedFav', function( results )
-            {
-                loadFeed( results.feedFav );
-            });
-            break;
-        case "archive":
-            chrome.storage.local.get('feedArchive', function( results )
-            {
-                loadFeed( results.feedArchive );
-            });
-            break;
-        default:
-            chrome.storage.local.get('feedUnread', function( results )
-            {
-                loadFeed( results.feedUnread );
-            });
-            break;
-    }
-    return false;
-}
-
-function updateFeed( feed )
-{
-    if( storage.v1.key == "" || typeof( storage.v1.key ) == "undefined" )
-    {
-         openOptions();
-    }
-    else
-    {
-        $( '#loading-img' ).show();
-        chrome.runtime.sendMessage( feed, function( r )
+        if (wItPop.settings.v1.folder == "")
         {
-            $( '#loading-img' ).hide();
+            wItPop.settings.v1.folder = "api";
+        }
+        return wItPop.settings.url + '/' + wItPop.settings.v1.folder + '/';
+    };
+
+    wItPop.loadSettings = function ()
+    {
+        var loaded = $.Deferred();
+
+        chrome.storage.local.get('wallabagItSettings', function (result)
+        {
+            if(result.wallabagItSettings != undefined && 'v1' in result.wallabagItSettings && 'v2' in result.wallabagItSettings)
+            {
+                wItPop.settings = result.wallabagItSettings;
+            }
+            loaded.resolve(true);
         });
-    }
-}
 
-function loadFeed( data )
-{
-    $( '#loading-img' ).show();
-    var link_url = storage.url + "/?view=view&id=";
-    clear();
-    for( var i in data )
+        return loaded.promise();
+    };
+
+    wItPop.feed.load = function (feed)
     {
-        var id = data[i].id;
-        var title = data[i].title;
-        var fav = data[i].is_fav;
-        var archived = data[i].is_read;
-        var link = link_url + id;
-        switch( storage.linking )
+        switch (feed)
         {
-            case "wallabag":
-                link = link_url + id;
+            case "fav":
+                chrome.storage.local.get('wallabagItFav', function (results)
+                {
+                    wItPop.cache.fav = results.wallabagItFav;
+                    wItPop.feed.build(results.wallabagItFav);
+                });
                 break;
-            case "page":
-                link = data[i].url;
+            case "archive":
+                chrome.storage.local.get('wallabagItArchive', function (results)
+                {
+                    wItPop.cache.archive = results.wallabagItArchive;
+                    wItPop.feed.build(results.wallabagItArchive);
+                });
+                break;
+            case "unread":
+            default:
+                chrome.storage.local.get('wallabagItUnread', function (results)
+                {
+                    wItPop.cache.unread = results.wallabagItUnread;
+                    wItPop.feed.build(results.wallabagItUnread);
+                });
                 break;
         }
+    };
 
-        loadItem( title, link, id, fav, archived );
-        $( '#loading-img' ).hide();
-    }
-}
-
-// Determine what tab is selected (unread, fav, archive)
-function selectedTab()
-{
-    switch( $('.active').text() )
+    wItPop.feed.update = function (feed)
     {
-        case "Unread":
-            return "unread";
-            break;
-        case "Favorites":
-            return "fav";
-            break;
-        case "Archive":
-            return "archive";
-            break;
-        default:
-            return "unread";
-            break;
-    }
-}
+        switch (wItPop.settings.version)
+        {
+            case '1':
+            case 1:
+                if ('key' in wItPop.settings.v1)
+                {
+                    $loading.show();
+                    chrome.runtime.sendMessage(feed, function (r)
+                    {
+                        $loading.hide();
+                    });
+                }
+                else
+                {
+                    wItPop.options();
+                }
+                break;
+            case '2':
+            case 2:
+            default:
+                if ('secret' in wItPop.settings.v2)
+                {
+                    $loading.show();
+                    chrome.runtime.sendMessage(feed, function (r)
+                    {
+                        $loading.hide();
+                    });
+                }
+                else
+                {
+                    wItPop.options();
+                }
+        }
 
-// Load the items into the viewing window.
-function loadItem( title, link, id, fav, archived )
-{
-    var short_title = title;
-    if( title.length > 42 )
+    };
+
+    wItPop.feed.build = function (data)
     {
-        short_title = title.substr(0, 39) + "...";
-    }
+        switch (wItPop.settings.version)
+        {
+            case '1':
+            case 1:
+                wItPop.feed.build.v1(data);
+                break;
+            case '2':
+            case 2:
+            default:
+                wItPop.feed.build.v2(data);
+        }
+    };
 
-    if( fav == 1 )
+    wItPop.feed.build.v1 = function (data)
     {
-        fav = "flagged";
-    }
-    else
+        $loading.show();
+        var url = wItPop.settings.url + "?view=view&id=";
+        $("#wallabags-body").empty();
+
+        for (var i in data)
+        {
+            var id       = data[i].id;
+            var title    = data[i].title;
+            var fav      = data[i].is_fav;
+            var archived = data[i].is_read;
+            var link     = url + id;
+            switch (wItPop.settings.linking)
+            {
+                case "wallabag":
+                    link = url + id;
+                    break;
+                case "page":
+                    link = data[i].url;
+                    break;
+            }
+
+            wItPop.feed.loadItems(title, link, id, fav, archived);
+        }
+
+        $loading.hide();
+    };
+
+    wItPop.feed.build.v2 = function (data)
     {
-        fav = "unflagged";
-    }
+        $loading.show();
+        if (data != undefined)
+        {
+            $("#wallabags-body").empty();
 
-    if( archived == 1 )
+            for (var i in data)
+            {
+                var id       = data[i].id,
+                    title    = data[i].title,
+                    fav      = data[i].is_starred,
+                    archived = data[i].is_archived,
+                    link     = null;
+
+                switch (wItPop.settings.linking)
+                {
+                    case "page":
+                        link = data[i].url;
+                        break;
+                    case "wallabag":
+                    default:
+                        link = wItPop.settings.url + '/view/' + id;
+                        break;
+                }
+
+                wItPop.feed.loadItems(title, link, id, fav, archived);
+            }
+
+        }
+        $loading.hide();
+    };
+
+    // Load the items into the viewing window.
+    wItPop.feed.loadItems = function (title, link, id, fav, archived)
     {
-        archived = "flagged";
-    }
-    else
+        var short_title   = title,
+            favKlass      = "unflagged",
+            archivedKlass = "unflagged";
+
+        if (title.length > 42)
+        {
+            short_title = title.substr(0, 39) + "...";
+        }
+
+        if (fav == 1)
+        {
+            favKlass = "flagged";
+        }
+
+        if (archived == 1)
+        {
+            archivedKlass = "flagged";
+        }
+
+        var html_item = "<tr id='" + id + "' class='bags'>"
+            + "<td class='links'><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
+            + "<td class='actions'>"
+            + "<span class='glyphicon glyphicon-ok " + archivedKlass + "' data-id='" + id + "' data-status='" + archived + "' title='Archive it'></span>"
+            + "<span class='glyphicon glyphicon-star " + favKlass + "' data-id='" + id + "' data-status='" + fav + "' title='Add to favorites'></span>"
+            + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
+            + "</td>"
+            + "</tr>";
+        $("#wallabags-body").append(html_item);
+    };
+
+    // Change an item, archive it or favorite it.
+    wItPop.item.change = function (opt, id, status)
     {
-        archived = "unflagged";
-    }
+        if (opt == "archive")
+        {
+            $('#' + id).remove();
+        }
 
-    var html_item = "<tr id='" + id + "' class='bags'>"
-                + "<td class='links'><a href='" + link + "' title='" + title + "'>" + short_title + "</a></td>"
-                + "<td class='actions'>"
-                + "<span class='glyphicon glyphicon-ok " + archived + "' data-id='" + id + "' title='Archive it'></span>"
-                + "<span class='glyphicon glyphicon-star " + fav + "' data-id='" + id + "' title='Add to favorites'></span>"
-                + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
-                + "</td>"
-                + "</tr>";
-    $("#wallabags > table > tbody").append( html_item );
-}
+        switch (wItPop.settings.version)
+        {
+            case '1':
+            case 1:
+                var feedURL = wItPop.v1.url();
+                var req     = $.getJSON(feedURL, {
+                    r: 'change',
+                    o: opt,
+                    id: id,
+                    apikey: wItPop.settings.v1.key
+                }, function (data)
+                {
+                    wItPop.feed.update({
+                        unread: true,
+                        archive: true,
+                        fav: true
+                    });
+                });
+                break;
+            case '2':
+            case 2:
+            default:
+                wItAuth.getToken().done(function ()
+                {
+                    var feedURL = wItPop.settings.url + '/api/entries/' + id + '.json',
+                        data    = {
+                            'access_token': wItAuth.token.access_token
+                        };
 
-// Change an item, archive it or favorite it.
-function changeItem( feedURL, opt, id )
-{
-    if( opt == "archive" )
+                    switch (opt)
+                    {
+                        case 'archive':
+                            data.archive = status;
+                            break;
+                        case 'fav':
+                            data.starred = status;
+                            break;
+                    }
+
+                    $.ajax({
+                        url: feedURL,
+                        method: 'PATCH',
+                        data: data,
+                        success: function ()
+                        {
+                            wItPop.feed.update({
+                                unread: true,
+                                archive: true,
+                                fav: true
+                            });
+                        }
+                    });
+                });
+        }
+
+        return true;
+
+    };
+
+    // Remove an item.
+    wItPop.item.remove = function (id)
     {
-        $( '#' + id ).remove();
-    }
+        $('#' + id).remove();
+        switch (wItPop.settings.version)
+        {
+            case '1':
+            case 1:
+                var feedURL = wItPop.v1.url();
+                var req     = $.getJSON(feedURL, {
+                    r: 'delete',
+                    id: id,
+                    apikey: wItPop.settings.v1.key
+                }, function (data)
+                {
+                    wItPop.feed.update({
+                        unread: true,
+                        archive: true,
+                        fav: true
+                    });
+                });
+                break;
+            case '2':
+            case 2:
+            default:
+                wItAuth.getToken().done(function ()
+                {
+                    var feedURL = wItPop.settings.url + '/api/entries/' + id + '.json';
+                    $.ajax({
+                        url: feedURL,
+                        method: 'DELETE',
+                        data: {'access_token': wItAuth.token.access_token},
+                        success: function ()
+                        {
+                            wItPop.feed.update({
+                                unread: true,
+                                archive: true,
+                                fav: true
+                            });
+                        }
+                    });
+                });
+        }
+    };
 
-    var req = $.getJSON( feedURL, { r: 'change', o: opt, id: id, apikey: storage.v1.key }, function( data )
+    // Add a new item to Wallabag.
+    wItPop.item.add = function (url, title)
     {
-        updateFeed({ unread: true, archive: true, fav: true });
-    });
-}
+        var addItem = $.Deferred();
 
-// Remove an item.
-function removeItem( feedURL, id )
-{
-    $( '#' + id ).remove();
-    var req = $.getJSON( feedURL, { r: 'delete', id: id, apikey: storage.v1.key }, function( data )
+        switch (wItPop.settings.version)
+        {
+            case '1':
+            case 1:
+                var feedURL = wItPop.v1.url();
+                $.getJSON(feedURL, {
+                    r: 'add',
+                    url: url,
+                    title: title,
+                    apikey: wItPop.settings.v1.key
+                }, function (data)
+                {
+                    wItPop.feed.update({
+                        unread: true,
+                        archive: true,
+                        fav: true
+                    });
+                    addItem.resolve(true);
+                });
+                break;
+            case '2':
+            case 2:
+            default:
+                wItAuth.getToken().done(function ()
+                {
+                    var feedURL = wItPop.settings.url + '/api/entries.json';
+                    $.post(feedURL, {
+                        'url': url,
+                        'title': title,
+                        'access_token': wItAuth.token.access_token
+                    }, function ()
+                    {
+                        wItPop.feed.update({
+                            unread: true,
+                            archive: true,
+                            fav: true
+                        });
+                        addItem.resolve(true);
+                    });
+                });
+        }
+
+        return addItem.promise();
+    };
+
+    // Determine what tab is selected (unread, fav, archive)
+    wItPop.tab.selected = function ()
     {
-        updateFeed({ unread: true, archive: true, fav: true });
-    });
-}
+        var tab = $('#head-tabs').find('.active').data('link');
+        switch (tab)
+        {
+            case "Unread":
+                return "unread";
+                break;
+            case "Favorites":
+                return "fav";
+                break;
+            case "Archive":
+                return "archive";
+                break;
+            default:
+                return tab;
+                break;
+        }
+    };
 
-// Add a new item to Wallabag.
-function addItem( feedURL, url, title )
-{
-    var adding_item = $.Deferred();
-    var req = $.getJSON( feedURL, { r: 'add', url: url, title: title, apikey: storage.v1.key }, function( data )
+    // Open the options window
+    wItPop.options = function ()
     {
-        updateFeed({ unread: true, archive: true, fav: true });
-        adding_item.resolve( true );
-    });
-    return adding_item.promise();
-}
+        var options_url = chrome.extension.getURL("options.html");
+        chrome.tabs.create({url: options_url});
+    };
 
-// Open the options window
-function openOptions()
-{
-    var options_url = chrome.extension.getURL( "options.html" );
-    chrome.tabs.create( { url: options_url } );
-}
+    // -------------------
+    // Actions
+    // --------------------------------
+    $loading.hide(); // Hide the loading icon.
+    $('.wallabag-link').tooltip();
+    $openOpt.tooltip();
 
-// Clear all items in the display area.
-function clear()
-{
-    $("#wallabags > table > tbody").empty();
-}
-
-
-$(document).ready(function()
-{
-    $( '.open-options' ).tooltip();
-    $( '.wallabag-link' ).tooltip();
-
-    $( '#add-link' ).click(function()
+    $('#add-link').click(function ()
     {
-        chrome.tabs.query({ 'active': true, 'currentWindow': true }, function( tabs )
+        chrome.tabs.query({
+            'active': true,
+            'currentWindow': true
+        }, function (tabs)
         {
             var tablink = tabs[0].url;
-            var title = tabs[0].title;
-            $( '#add-link' ).html("<span class='glyphicon glyphicon-file'></span> Adding...");
-            addItem( apiFeedURL(), tablink, title ).done(function()
+            var title   = tabs[0].title;
+            $('#add-link').html("<span class='glyphicon glyphicon-file'></span> Adding...");
+            wItPop.item.add(tablink, title).done(function ()
             {
-                $( '#add-link' ).html( "<span class='glyphicon glyphicon-file'></span> Add Page" );
+                $('#add-link').html("<span class='glyphicon glyphicon-file'></span> Add Page");
             });
         });
     });
 
-    $( '#wallabags' ).on('click', '.glyphicon-ok', function()
+    $wallabags.on('click', '.glyphicon-ok', function ()
     {
-        var id = $( this ).attr( 'data-id' );
-        changeItem( apiFeedURL(), "archive", id );
+        var id        = $(this).data('id'),
+            status    = $(this).data('status'),
+            newStatus = (status == 0 || status == '0') ? 1 : 0;
+
+        wItPop.item.change("archive", id, newStatus);
+        $(this).data('status', newStatus);
+
+        return false;
+    }).on('click', '.glyphicon-star', function ()
+    {
+        var id        = $(this).data('id'),
+            status    = $(this).data('status'),
+            newStatus = (status == 0 || status == '0') ? 1 : 0;
+
+        wItPop.item.change("fav", id, newStatus);
+        $(this).data('status', newStatus);
+        $(this).toggleClass('flagged').toggleClass('unflagged');
+
+        return false;
+    }).on('click', '.glyphicon-remove', function ()
+    {
+        var id = $(this).attr('data-id');
+        wItPop.item.remove(id);
+        return false;
+    }).on('click', 'a', function ()
+    {
+        chrome.tabs.create({url: $(this).attr('href')});
         return false;
     });
 
-    $( '#wallabags' ).on('click', '.glyphicon-star', function()
+    $openOpt.on('click', function ()
     {
-        var id = $( this ).attr( 'data-id' );
-        changeItem( apiFeedURL(), "fav", id );
-        $( this ).toggleClass( 'flagged' ).toggleClass( 'unflagged' );
-        return false;
+        wItPop.options();
     });
 
-    $( '#wallabags' ).on('click', '.glyphicon-remove', function()
+    $('.link').on('click', function ()
     {
-        var id = $( this ).attr( 'data-id' );
-        removeItem( apiFeedURL(), id );
-        return false;
-    });
-
-   $( '.open-options' ).on('click', function()
-    {
-        openOptions();
-    });
-
-    $('#wallabags').on('click', 'a', function()
-    {
-        chrome.tabs.create( { url: $(this).attr('href') } );
-        return false;
-    });
-
-    $( '.link' ).on('click', function()
-    {
-        chrome.tabs.create( { url: $( this ).attr( 'href' ) } );
+        chrome.tabs.create({url: $(this).attr('href')});
         return false;
     });
 
     // Change what feed is loaded (Unread, Favorite, Archive)
-    $( '.nav' ).on('click', 'li', function( e )
+    $('.nav').on('click', 'li', function (e)
     {
-        $('.nav li').each(function()
+        $('.nav li').each(function ()
         {
-            $( this ).removeClass( 'active' );
+            $(this).removeClass('active');
         });
 
-        $( this ).attr( 'class', 'active' );
-        var feed = $( this ).attr( 'data-link' );
-        switch( feed )
+        $(this).addClass('active');
+        var feed = $(this).data('link');
+
+        switch (feed)
         {
             case "unread":
-                $( "#selected-tab" ).text("Unread");
-                $( "#selected-glyph" ).removeClass("glyphicon-star glyphicon-ok-circle").addClass("glyphicon-inbox");
-                getFeed( "unread" );
+                $tab.text("Unread");
+                $glyph.removeClass("glyphicon-star glyphicon-ok-circle").addClass("glyphicon-inbox");
+                wItPop.feed.load("unread");
                 break;
             case "fav":
-                $( "#selected-tab" ).text("Favorites");
-                $( "#selected-glyph" ).removeClass("glyphicon-inbox glyphicon-ok-circle").addClass("glyphicon-star");
-                getFeed( "fav" );
+                $tab.text("Favorites");
+                $glyph.removeClass("glyphicon-inbox glyphicon-ok-circle").addClass("glyphicon-star");
+                wItPop.feed.load("fav");
                 break;
             case "archive":
-                $( "#selected-tab" ).text("Archive");
-                $( "#selected-glyph" ).removeClass("glyphicon-star glyphicon-inbox").addClass("glyphicon-ok-circle");
-                getFeed( "archive" );
+                $tab.text("Archive");
+                $glyph.removeClass("glyphicon-star glyphicon-inbox").addClass("glyphicon-ok-circle");
+                wItPop.feed.load("archive");
                 break;
         }
-        $( '#wallabag-nav' ).collapse( 'hide' );
+        $('#wallabag-nav').collapse('hide');
         return false;
     });
-});
 
-chrome.runtime.onInstalled.addListener( openOptions );
-chrome.runtime.onStartup.addListener( loadStorage );
+    // -------------------
+    // Chrome API
+    // --------------------------------
 
-document.addEventListener('DOMContentLoaded', function ()
-{
-    loadStorage().done(function()
+    // Load the settings
+
+    wItPop.loadSettings().done(function ()
     {
-        updateFeed({ unread: true, archive: true, fav: true });
-        getFeed( "unread" );
-        $( "#wallabagIt-link" ).attr( 'href', storage.url );
+        wItPop.feed.update({
+            unread: true,
+            archive: true,
+            fav: true
+        });
+        wItPop.feed.load("unread");
+        $("#wallabagIt-link").attr('href', wItPop.settings.url);
     });
-});
 
-chrome.storage.onChanged.addListener( function( changes )
-{
-    for( key in changes )
+    chrome.runtime.onInstalled.addListener(wItPop.options);
+
+    chrome.storage.onChanged.addListener(function (changes)
     {
-        if( key == "feedUnread" && selectedTab() == "unread" )
-        {
-            loadFeed( changes['feedUnread'].newValue );
-        }
+        var tab = wItPop.tab.selected();
 
-        if( key == "feedArchive" && selectedTab() == "archive" )
+        for (key in changes)
         {
-            loadFeed( changes['feedArchive'].newValue );
-        }
+            if (key == "wallabagItUnread" && tab == "unread")
+            {
+                wItPop.feed.load('unread');
+            }
 
-        if( key == "feedFav" && selectedTab() == "fav" )
-        {
-            loadFeed( changes['feedFav'].newValue );
+            if (key == "wallabagItArchive" && tab == "archive")
+            {
+                wItPop.feed.load('archive');
+            }
+
+            if (key == "wallabagItFav" && tab == "fav")
+            {
+                wItPop.feed.load('fav');
+            }
         }
-    }
+    });
 });
 
