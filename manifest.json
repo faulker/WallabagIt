@@ -6,13 +6,13 @@
     "icons": { "16": "img/wallabag-icon-48.png",
                "48": "img/wallabag-icon-128.png",
                "128": "img/wallabag-icon-128.png" },
-    "version": "0.6.1",
+    "version": "1.0.0",
     "homepage_url": "https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm",
     "options_page": "options.html",
 
     "background":
     {
-        "scripts": ["js/jquery-2.1.1.min.js", "js/check-feed.event.js"],
+        "scripts": ["js/jquery-3.1.0.min.js", "js/api.event.js", "js/v2.auth.js"],
         "persistent": false
     },
 
