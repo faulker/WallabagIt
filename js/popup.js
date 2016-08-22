@@ -28,14 +28,13 @@ $(function ()
     wItPop.tab      = {};
     wItPop.item     = {};
 
-    // Stop the getJSON calls from caching the results.
-    $.ajaxSetup({cache: false});
-
     var $wallabags = $('#wallabags'),
         $openOpt   = $('.open-options'),
         $tab       = $('#selected-tab'),
         $glyph     = $('#selected-glyph'),
         $loading   = $('#loading-img');
+
+    $.ajaxSetup({cache: false}); // Stop the getJSON calls from caching the results.
 
     // -------------------
     // Functions
@@ -67,6 +66,7 @@ $(function ()
 
     wItPop.feed.load = function (feed)
     {
+        $loading.show();
         switch (feed)
         {
             case "fav":
@@ -74,6 +74,7 @@ $(function ()
                 {
                     wItPop.cache.fav = results.wallabagItFav;
                     wItPop.feed.build(results.wallabagItFav);
+                    $loading.hide();
                 });
                 break;
             case "archive":
@@ -81,6 +82,7 @@ $(function ()
                 {
                     wItPop.cache.archive = results.wallabagItArchive;
                     wItPop.feed.build(results.wallabagItArchive);
+                    $loading.hide();
                 });
                 break;
             case "unread":
@@ -89,6 +91,7 @@ $(function ()
                 {
                     wItPop.cache.unread = results.wallabagItUnread;
                     wItPop.feed.build(results.wallabagItUnread);
+                    $loading.hide();
                 });
                 break;
         }
@@ -96,13 +99,14 @@ $(function ()
 
     wItPop.feed.update = function (feed)
     {
+        $loading.show();
+
         switch (wItPop.settings.version)
         {
             case '1':
             case 1:
                 if ('key' in wItPop.settings.v1)
                 {
-                    $loading.show();
                     chrome.runtime.sendMessage(feed, function (r)
                     {
                         $loading.hide();
@@ -118,7 +122,6 @@ $(function ()
             default:
                 if ('secret' in wItPop.settings.v2)
                 {
-                    $loading.show();
                     chrome.runtime.sendMessage(feed, function (r)
                     {
                         $loading.hide();
@@ -435,7 +438,6 @@ $(function ()
     // -------------------
     // Actions
     // --------------------------------
-    $loading.hide(); // Hide the loading icon.
     $('.wallabag-link').tooltip();
     $openOpt.tooltip();
 
@@ -547,6 +549,7 @@ $(function ()
         });
         wItPop.feed.load("unread");
         $("#wallabagIt-link").attr('href', wItPop.settings.url);
+        // $loading.hide();
     });
 
     chrome.runtime.onInstalled.addListener(wItPop.options);

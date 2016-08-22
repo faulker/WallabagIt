@@ -97,7 +97,7 @@ $(function ()
         if (status)
         {
             $("#requirementInfo").removeClass("list-group-item-danger").addClass("list-group-item-success");
-            $("#apiStatus").text("API is working!");
+            $("#apiStatus").text("Working!");
         }
         else
         {
@@ -106,20 +106,12 @@ $(function ()
         }
     };
 
-    // Get app version and display it
-    var version = chrome.app.getDetails().version;
-    $("#version").html("Version: <strong>" + version + "</strong>");
-
-    $(".alert").alert().hide();
-
-    // Save all settings
-    $("#save-settings").click(function ()
+    wItOpt.checkApiStatus = function(url)
     {
-        var url = $('#api-url').val();
-        wItOpt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
-
-        wItOpt.v1.save();
-        wItOpt.v2.save();
+        if(url == undefined || url == '')
+        {
+            url = wItOpt.settings.url;
+        }
 
         switch(wItOpt.settings.version)
         {
@@ -138,8 +130,30 @@ $(function ()
                     wItOpt.updateApiStatus(status);
                 });
         }
+    };
+
+    // Get app version and display it
+    var version = chrome.app.getDetails().version;
+    $("#version").html("Version: <strong>" + version + "</strong>");
+
+    $(".alert").alert().hide();
+
+    // Save all settings
+    $("#save-settings").click(function ()
+    {
+        var url = $('#api-url').val();
+        if(new RegExp(".*\/$", "g").test(url))
+        {
+            url = url.slice(0, -1);
+        }
+        wItOpt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
+
+        wItOpt.v1.save();
+        wItOpt.v2.save();
 
         chrome.storage.local.set({'wallabagItSettings': wItOpt.settings});
+
+        wItOpt.checkApiStatus(url);
     });
 
     // Change Wallabag version
@@ -164,5 +178,7 @@ $(function ()
 
         wItOpt.v1.load();
         wItOpt.v2.load();
+
+        wItOpt.checkApiStatus();
     });
 });
