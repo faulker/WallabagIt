@@ -6,13 +6,13 @@
     "icons": { "16": "img/wallabag-icon-48.png",
                "48": "img/wallabag-icon-128.png",
                "128": "img/wallabag-icon-128.png" },
-    "version": "1.0.0",
+    "version": "1.0.1",
     "homepage_url": "https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm",
     "options_page": "options.html",
 
     "background":
     {
-        "scripts": ["js/jquery-3.1.0.min.js", "js/api.event.js", "js/v2.auth.js"],
+        "scripts": ["js/jquery-3.1.0.min.js", "js/api.event.js", "js/v2.auth.js", "js/keys.js"],
         "persistent": false
     },
 
@@ -23,10 +23,21 @@
         "default_popup": "popup.html"
     },
 
+    "commands": {
+        "wallabag-page": {
+            "suggested_key": {
+                "default": "Alt+Shift+W",
+                "mac": "Ctrl+Shift+W"
+            },
+            "description": "Save a page to your Wallabag app"
+        }
+    },
+
     "permissions":
     [
         "*://*/",
         "tabs",
-        "storage"
+        "storage",
+        "commands"
     ]
 }
