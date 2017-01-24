@@ -38,14 +38,11 @@ $(function ()
         wItApi.loadSettings().done(function ()
         {
             var result = false;
-            switch (wItApi.settings.version)
+            switch (wItApi.settings.version.toString())
             {
                 case '1':
-                case 1:
                     result = wItApi.v1.get(msg);
                     break;
-                case '2':
-                case 2:
                 default:
                     result = wItApi.v2.get(msg);
             }
@@ -89,6 +86,9 @@ $(function ()
                 chrome.storage.local.set({'wallabagItArchive': archived});
                 chrome.storage.local.set({'wallabagItFav': starred});
                 chrome.storage.local.set({'wallabagItUnread': unread});
+            }).fail(function (xhr) {
+                debugger;
+                console.error("Error loading entries.");
             });
         });
 

@@ -60,16 +60,13 @@ $(function ()
         var btnv1 = $('#opt-wallabag-v1');
         var btnv2 = $('#opt-wallabag-v2');
 
-        switch (wItOpt.settings.version)
+        switch (wItOpt.settings.version.toString())
         {
             case '1':
-            case 1:
                 btnv1.attr('checked', 'checked');
                 btnv1.parent().addClass('active');
                 $('#wallabag-v2').hide();
                 break;
-            case '2':
-            case 2:
             default:
                 btnv2.attr('checked', 'checked');
                 btnv2.parent().addClass('active');
@@ -113,17 +110,14 @@ $(function ()
             url = wItOpt.settings.url;
         }
 
-        switch(wItOpt.settings.version)
+        switch(wItOpt.settings.version.toString())
         {
             case '1':
-            case 1:
                 wItOpt.v1.checkUrl(url).done(function(status)
                 {
                     wItOpt.updateApiStatus(status);
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItOpt.v2.checkUrl(url).done(function(status)
                 {

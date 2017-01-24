@@ -101,10 +101,9 @@ $(function ()
     {
         $loading.show();
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 if ('key' in wItPop.settings.v1)
                 {
                     chrome.runtime.sendMessage(feed, function (r)
@@ -117,8 +116,6 @@ $(function ()
                     wItPop.options();
                 }
                 break;
-            case '2':
-            case 2:
             default:
                 if ('secret' in wItPop.settings.v2)
                 {
@@ -137,14 +134,11 @@ $(function ()
 
     wItPop.feed.build = function (data)
     {
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 wItPop.feed.build.v1(data);
                 break;
-            case '2':
-            case 2:
             default:
                 wItPop.feed.build.v2(data);
         }
@@ -242,6 +236,7 @@ $(function ()
             + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
             + "</td>"
             + "</tr>";
+
         $("#wallabags-body").append(html_item);
     };
 
@@ -253,10 +248,9 @@ $(function ()
             $('#' + id).remove();
         }
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 var req     = $.getJSON(feedURL, {
                     r: 'change',
@@ -272,8 +266,6 @@ $(function ()
                     });
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -316,10 +308,9 @@ $(function ()
     wItPop.item.remove = function (id)
     {
         $('#' + id).remove();
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 var req     = $.getJSON(feedURL, {
                     r: 'delete',
@@ -334,8 +325,6 @@ $(function ()
                     });
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -362,10 +351,9 @@ $(function ()
     {
         var addItem = $.Deferred();
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 $.getJSON(feedURL, {
                     r: 'add',
@@ -382,8 +370,6 @@ $(function ()
                     addItem.resolve(true);
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -400,6 +386,9 @@ $(function ()
                             fav: true
                         });
                         addItem.resolve(true);
+                    }).fail(function (xhr)
+                    {
+                        addItem.reject(JSON.parse(xhr.responseText));
                     });
                 });
         }
@@ -454,6 +443,8 @@ $(function ()
             wItPop.item.add(tablink, title).done(function ()
             {
                 $('#add-link').html("<span class='glyphicon glyphicon-file'></span> Add Page");
+            }).fail(function (status) {
+                $("#wallabags-body").empty().append("<tr><td><em>Sorry, something went wrong! " + status.error_description + "</em></td><tr>");
             });
         });
     });
@@ -577,4 +568,3 @@ $(function ()
         }
     });
 });
-
