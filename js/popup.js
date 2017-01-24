@@ -32,6 +32,7 @@ $(function ()
         $openOpt   = $('.open-options'),
         $tab       = $('#selected-tab'),
         $glyph     = $('#selected-glyph'),
+        $error     = $('#error-img'),
         $loading   = $('#loading-img');
 
     $.ajaxSetup({cache: false}); // Stop the getJSON calls from caching the results.
@@ -67,6 +68,8 @@ $(function ()
     wItPop.feed.load = function (feed)
     {
         $loading.show();
+        $error.hide();
+
         switch (feed)
         {
             case "fav":
@@ -74,7 +77,7 @@ $(function ()
                 {
                     wItPop.cache.fav = results.wallabagItFav;
                     wItPop.feed.build(results.wallabagItFav);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
             case "archive":
@@ -82,7 +85,7 @@ $(function ()
                 {
                     wItPop.cache.archive = results.wallabagItArchive;
                     wItPop.feed.build(results.wallabagItArchive);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
             case "unread":
@@ -91,7 +94,7 @@ $(function ()
                 {
                     wItPop.cache.unread = results.wallabagItUnread;
                     wItPop.feed.build(results.wallabagItUnread);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
         }
@@ -100,6 +103,7 @@ $(function ()
     wItPop.feed.update = function (feed)
     {
         $loading.show();
+        $error.hide();
 
         switch (wItPop.settings.version.toString())
         {
@@ -108,7 +112,7 @@ $(function ()
                 {
                     chrome.runtime.sendMessage(feed, function (r)
                     {
-                        $loading.hide();
+                        $loading.delay(200).hide(0);
                     });
                 }
                 else
@@ -121,7 +125,7 @@ $(function ()
                 {
                     chrome.runtime.sendMessage(feed, function (r)
                     {
-                        $loading.hide();
+                        $loading.delay(200).hide(0);
                     });
                 }
                 else
@@ -147,6 +151,8 @@ $(function ()
     wItPop.feed.build.v1 = function (data)
     {
         $loading.show();
+        $error.hide();
+
         var url = wItPop.settings.url + "?view=view&id=";
         $("#wallabags-body").empty();
 
@@ -170,12 +176,14 @@ $(function ()
             wItPop.feed.loadItems(title, link, id, fav, archived);
         }
 
-        $loading.hide();
+        $loading.delay(200).hide(0);
     };
 
     wItPop.feed.build.v2 = function (data)
     {
         $loading.show();
+        $error.hide();
+
         if (data != undefined)
         {
             $("#wallabags-body").empty();
@@ -203,7 +211,7 @@ $(function ()
             }
 
         }
-        $loading.hide();
+        $loading.delay(200).hide(0);
     };
 
     // Load the items into the viewing window.
@@ -444,7 +452,7 @@ $(function ()
             {
                 $('#add-link').html("<span class='glyphicon glyphicon-file'></span> Add Page");
             }).fail(function (status) {
-                $("#wallabags-body").empty().append("<tr><td><em>Sorry, something went wrong! " + status.error_description + "</em></td><tr>");
+                $error.show().attr('title', "Sorry, something went wrong! " + status.error_description);
             });
         });
     });
@@ -540,7 +548,7 @@ $(function ()
         });
         wItPop.feed.load("unread");
         $("#wallabagIt-link").attr('href', wItPop.settings.url);
-        // $loading.hide();
+        // $loading.delay(200).hide(0);
     });
 
     chrome.runtime.onInstalled.addListener(wItPop.options);
