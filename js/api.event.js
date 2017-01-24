@@ -35,6 +35,8 @@ $(function ()
 
     chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse)
     {
+        var resp = sendResponse;
+
         wItApi.loadSettings().done(function ()
         {
             var result = false;
@@ -47,13 +49,26 @@ $(function ()
                     result = wItApi.v2.get(msg);
             }
 
-            sendResponse({done: result});
+            if(true === result) {
+              resp({ done: true });
+            } else {
+              result.done(function ()
+              {
+                resp({ done: true });
+              }).fail(function (xhr)
+              {
+                resp({ done: false, error: JSON.parse(xhr.responseText) });
+              });
+            }
         });
+
+        return true; // required in order to send async `sendResponse`
     });
 
     wItApi.v2.get = function (msg)
     {
         var apiURL = wItApi.settings.url + '/api/entries.json';
+        var loaded = $.Deferred();
 
         wItAuth.getToken().done(function()
         {
@@ -86,13 +101,14 @@ $(function ()
                 chrome.storage.local.set({'wallabagItArchive': archived});
                 chrome.storage.local.set({'wallabagItFav': starred});
                 chrome.storage.local.set({'wallabagItUnread': unread});
+            }).done(function (xhr) {
+              loaded.resolve(xhr);
             }).fail(function (xhr) {
-                debugger;
-                console.error("Error loading entries.");
+              loaded.reject(xhr);
             });
         });
 
-
+        return loaded.promise();
     };
 
     wItApi.v1.get = function (msg)

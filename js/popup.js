@@ -108,32 +108,33 @@ $(function ()
         switch (wItPop.settings.version.toString())
         {
             case '1':
-                if ('key' in wItPop.settings.v1)
-                {
-                    chrome.runtime.sendMessage(feed, function (r)
-                    {
-                        $loading.delay(200).hide(0);
-                    });
-                }
-                else
+                if (!('key' in wItPop.settings.v1))
                 {
                     wItPop.options();
+                    return;
                 }
                 break;
             default:
-                if ('secret' in wItPop.settings.v2)
-                {
-                    chrome.runtime.sendMessage(feed, function (r)
-                    {
-                        $loading.delay(200).hide(0);
-                    });
-                }
-                else
+                if (!('secret' in wItPop.settings.v2))
                 {
                     wItPop.options();
+                    return;
                 }
         }
 
+        chrome.runtime.sendMessage(feed, function (r)
+        {
+            if(typeof r == 'undefined') {
+              // this is fired back by Chrome on exceptions are thrown in message handler
+              $loading.hide();
+              $error.show().attr('title', 'Sorry!  An internal error occurred while loading your articles.');
+            } else if(r.done !== true) {
+              $loading.hide();
+              $error.show().attr('title', 'Sorry!  An error occurred while loading your articles: ' + r.error.error_description);
+            } else {
+              $loading.delay(200).hide(0);
+            }
+        });
     };
 
     wItPop.feed.build = function (data)
