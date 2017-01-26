@@ -33,10 +33,9 @@ $(function()
         {
             var addItem = $.Deferred();
 
-            switch (settings.version)
+            switch (settings.version.toString())
             {
                 case '1':
-                case 1:
                     var feedURL = v1url();
                     $.getJSON(feedURL, {
                         r: 'add',
@@ -48,8 +47,6 @@ $(function()
                         wItApi.v1.get({fav: true});
                     });
                     break;
-                case '2':
-                case 2:
                 default:
                     wItAuth.getToken().done(function ()
                     {

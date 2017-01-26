@@ -32,6 +32,7 @@ $(function ()
         $openOpt   = $('.open-options'),
         $tab       = $('#selected-tab'),
         $glyph     = $('#selected-glyph'),
+        $error     = $('#error-img'),
         $loading   = $('#loading-img');
 
     $.ajaxSetup({cache: false}); // Stop the getJSON calls from caching the results.
@@ -67,6 +68,8 @@ $(function ()
     wItPop.feed.load = function (feed)
     {
         $loading.show();
+        $error.hide();
+
         switch (feed)
         {
             case "fav":
@@ -74,7 +77,7 @@ $(function ()
                 {
                     wItPop.cache.fav = results.wallabagItFav;
                     wItPop.feed.build(results.wallabagItFav);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
             case "archive":
@@ -82,7 +85,7 @@ $(function ()
                 {
                     wItPop.cache.archive = results.wallabagItArchive;
                     wItPop.feed.build(results.wallabagItArchive);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
             case "unread":
@@ -91,7 +94,7 @@ $(function ()
                 {
                     wItPop.cache.unread = results.wallabagItUnread;
                     wItPop.feed.build(results.wallabagItUnread);
-                    $loading.hide();
+                    $loading.delay(200).hide(0);
                 });
                 break;
         }
@@ -100,51 +103,47 @@ $(function ()
     wItPop.feed.update = function (feed)
     {
         $loading.show();
+        $error.hide();
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
-                if ('key' in wItPop.settings.v1)
-                {
-                    chrome.runtime.sendMessage(feed, function (r)
-                    {
-                        $loading.hide();
-                    });
-                }
-                else
+                if (!('key' in wItPop.settings.v1))
                 {
                     wItPop.options();
+                    return;
                 }
                 break;
-            case '2':
-            case 2:
             default:
-                if ('secret' in wItPop.settings.v2)
-                {
-                    chrome.runtime.sendMessage(feed, function (r)
-                    {
-                        $loading.hide();
-                    });
-                }
-                else
+                if (!('secret' in wItPop.settings.v2))
                 {
                     wItPop.options();
+                    return;
                 }
         }
 
+        chrome.runtime.sendMessage(feed, function (r)
+        {
+            if(typeof r == 'undefined') {
+              // this is fired back by Chrome on exceptions are thrown in message handler
+              $loading.hide();
+              $error.show().attr('title', 'Sorry!  An internal error occurred while loading your articles.');
+            } else if(r.done !== true) {
+              $loading.hide();
+              $error.show().attr('title', 'Sorry!  An error occurred while loading your articles: ' + r.error.error_description);
+            } else {
+              $loading.delay(200).hide(0);
+            }
+        });
     };
 
     wItPop.feed.build = function (data)
     {
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 wItPop.feed.build.v1(data);
                 break;
-            case '2':
-            case 2:
             default:
                 wItPop.feed.build.v2(data);
         }
@@ -153,6 +152,8 @@ $(function ()
     wItPop.feed.build.v1 = function (data)
     {
         $loading.show();
+        $error.hide();
+
         var url = wItPop.settings.url + "?view=view&id=";
         $("#wallabags-body").empty();
 
@@ -176,12 +177,14 @@ $(function ()
             wItPop.feed.loadItems(title, link, id, fav, archived);
         }
 
-        $loading.hide();
+        $loading.delay(200).hide(0);
     };
 
     wItPop.feed.build.v2 = function (data)
     {
         $loading.show();
+        $error.hide();
+
         if (data != undefined)
         {
             $("#wallabags-body").empty();
@@ -209,7 +212,7 @@ $(function ()
             }
 
         }
-        $loading.hide();
+        $loading.delay(200).hide(0);
     };
 
     // Load the items into the viewing window.
@@ -242,6 +245,7 @@ $(function ()
             + "<span class='glyphicon glyphicon-remove unflagged' data-id='" + id + "' title='Remove it'></span>"
             + "</td>"
             + "</tr>";
+
         $("#wallabags-body").append(html_item);
     };
 
@@ -253,10 +257,9 @@ $(function ()
             $('#' + id).remove();
         }
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 var req     = $.getJSON(feedURL, {
                     r: 'change',
@@ -272,8 +275,6 @@ $(function ()
                     });
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -316,10 +317,9 @@ $(function ()
     wItPop.item.remove = function (id)
     {
         $('#' + id).remove();
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 var req     = $.getJSON(feedURL, {
                     r: 'delete',
@@ -334,8 +334,6 @@ $(function ()
                     });
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -362,10 +360,9 @@ $(function ()
     {
         var addItem = $.Deferred();
 
-        switch (wItPop.settings.version)
+        switch (wItPop.settings.version.toString())
         {
             case '1':
-            case 1:
                 var feedURL = wItPop.v1.url();
                 $.getJSON(feedURL, {
                     r: 'add',
@@ -382,8 +379,6 @@ $(function ()
                     addItem.resolve(true);
                 });
                 break;
-            case '2':
-            case 2:
             default:
                 wItAuth.getToken().done(function ()
                 {
@@ -400,6 +395,9 @@ $(function ()
                             fav: true
                         });
                         addItem.resolve(true);
+                    }).fail(function (xhr)
+                    {
+                        addItem.reject(JSON.parse(xhr.responseText));
                     });
                 });
         }
@@ -454,6 +452,8 @@ $(function ()
             wItPop.item.add(tablink, title).done(function ()
             {
                 $('#add-link').html("<span class='glyphicon glyphicon-file'></span> Add Page");
+            }).fail(function (status) {
+                $error.show().attr('title', "Sorry, something went wrong! " + status.error_description);
             });
         });
     });
@@ -549,7 +549,7 @@ $(function ()
         });
         wItPop.feed.load("unread");
         $("#wallabagIt-link").attr('href', wItPop.settings.url);
-        // $loading.hide();
+        // $loading.delay(200).hide(0);
     });
 
     chrome.runtime.onInstalled.addListener(wItPop.options);
@@ -577,4 +577,3 @@ $(function ()
         }
     });
 });
-
