@@ -11,7 +11,7 @@ html
 
 body
 {
-    width: 450px;
+    width: 550px;
     height: 360px;
     overflow: hidden;
     font-family: "DroidSansMono", monospace;
@@ -47,7 +47,6 @@ body
 .nav
 {
     cursor:pointer;
-    cursor:hand;
 }
 
 .navbar-btn
@@ -59,11 +58,38 @@ body
 .flagged,
 .unflagged:hover
 {
+    cursor:pointer;
     color: #666;
 }
 
 .unflagged,
 .flagged:hover
 {
+    cursor:pointer;
     color: #eee;
+}
+
+/* Tag cloud entries */
+
+#tags-list {
+    margin: 2px;
+}
+
+#tags-list .tag-entry {
+    margin-bottom:7px;
+    padding: 7px;
+    display: inline-block;
+    background-color: #ecf0f1;
+    -webkit-border-radius: 15px;
+}
+
+#tags-list .tag-entry button {
+    padding:0;
+    background-color: #ecf0f1;
+    border-width:0;
+    -webkit-border-radius: 10px;
+}
+
+#tags-list .tag-entry button:hover {
+    color: #c0392b;
 }
