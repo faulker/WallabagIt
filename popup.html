@@ -1,44 +1,66 @@
 <!doctype html>
 <html>
-    <head>
-        <title>WallabagIt</title>
-        <link rel="stylesheet" href="css/bootstrap.min.css">
-        <link rel="stylesheet" href="css/style.css">
-    </head>
-    <body>
-        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#wallabag-nav">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="glyphicon glyphicon-inbox" id="selected-glyph"></span>
-                </button>
-                <button type="button" class="btn btn-default navbar-btn" id="add-link"><span class="glyphicon glyphicon-file"></span> Add Page</button>
-                <img src="img/loading.gif" id="loading-img" alt="">
-                <img src="img/error.png" id="error-img" alt="" style="display: none;">
-                <span class="navbar-brand pull-right" id="selected-tab">Unread</span>
-            </div>
+<head>
+    <title>WallabagIt</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#wallabag-nav">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="glyphicon glyphicon-inbox" id="selected-glyph"></span>
+        </button>
+        <button type="button" class="btn btn-default navbar-btn" id="add-link"><span class="glyphicon glyphicon-file"></span> Add Page</button>
+        <img src="img/loading.gif" id="loading-img" alt="">
+        <img src="img/error.png" id="error-img" alt="" style="display: none;">
+        <span class="navbar-brand pull-right" id="selected-tab">Unread</span>
+    </div>
 
-            <div class="collapse navbar-collapse" id="wallabag-nav">
-                <ul class="nav navbar-nav" id="head-tabs">
-                    <li class="active" data-link="unread"><a herf="#"><span class="glyphicon glyphicon-inbox"></span> Unread</a></li>
-                    <li data-link="fav"><a href="#"><span class="glyphicon glyphicon-star"></span> Favorites</a></li>
-                    <li data-link="archive"><a href="#"><span class="glyphicon glyphicon-ok-circle"></span> Archive</a></li>
-                </ul>
-            </div>
-        </nav>
-        <div id="wallabags">
-            <table class="table table-hover">
-                <tbody id="wallabags-body"></tbody>
-            </table>
-        </div>
-        <nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
-            <a class="navbar-brand link" id="wallabagIt-link" href="https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm">WallabagIt</a>
-            <button type="button" class="btn btn-default navbar-btn pull-right open-options" data-toggle="tooltip" data-placement="top" title="Options"><span class="glyphicon glyphicon-cog"></span></button>
-        </nav>
-    </body>
+    <div class="collapse navbar-collapse" id="wallabag-nav">
+        <ul class="nav navbar-nav" id="head-tabs">
+            <li class="active" data-link="unread"><a herf="#"><span class="glyphicon glyphicon-inbox"></span> Unread</a></li>
+            <li data-link="fav"><a href="#"><span class="glyphicon glyphicon-star"></span> Favorites</a></li>
+            <li data-link="archive"><a href="#"><span class="glyphicon glyphicon-ok-circle"></span> Archive</a></li>
+        </ul>
+    </div>
+</nav>
+<div id="wallabags">
+    <table class="table table-hover">
+        <tbody id="wallabags-body"></tbody>
+    </table>
+</div>
+<nav class="navbar navbar-default navbar-fixed-bottom" role="navigation">
+    <a class="navbar-brand link" id="wallabagIt-link" href="https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm">WallabagIt</a>
+    <button type="button" class="btn btn-default navbar-btn pull-right open-options" data-toggle="tooltip" data-placement="top" title="Options">
+        <span class="glyphicon glyphicon-cog"></span></button>
+</nav>
+</body>
 
-    <script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
-    <script src="js/bootstrap.min.js" type="text/javascript"></script>
-    <script src="js/v2.auth.js" type="text/javascript"></script>
-    <script src="js/popup.js" type="text/javascript"></script>
+<!-- Tags Modal //-->
+<div class="modal fade" id="tags-modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div id="tags-list" class="row"></div>
+                <hr/>
+                <label for="item-tags">Add Tag/s</label>
+                <input type="text" id="item-tags" value="" class="form-control"/>
+                <small class="text-muted">(use a comma to separate)</small>
+                <input type="hidden" id="item-id" value=""/>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" id="btn-tags-save" class="btn btn-primary">Add tag/s</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js" type="text/javascript"></script>
+<script src="js/v2.auth.js" type="text/javascript"></script>
+<script src="js/popup.js" type="text/javascript"></script>
 </html>
