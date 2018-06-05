@@ -69,6 +69,10 @@ body
     color: #eee;
 }
 
+.small-url {
+    color: #333;
+}
+
 /* Tag cloud entries */
 
 #tags-list {

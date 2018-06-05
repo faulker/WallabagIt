@@ -2,3 +2,9 @@
 /.idea/vcs.xml
 /.idea/WallabagIt.iml
 /.idea/workspace.xml
+/.idea
+.DS_Store
+/node_modules
+/dist
+/dist.pem
+/dist.crx

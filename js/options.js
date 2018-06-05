@@ -1,47 +1,24 @@
-$(function ()
-{
-    var wItOpt = window.wItOpt = window.wItOpt || {};
+$(function () {
+    // -------------------
+    // Init
+    // --------------------------------
 
-    wItOpt.v1       = {};
-    wItOpt.v2       = {};
-    wItOpt.settings = {
-        v1: {},
-        v2: {},
-        url: '',
-        linking: 'wallabag',
-        version: 2
-    };
+    $(".alert").alert().hide();
 
-    wItOpt.linkOptions = function ()
+    loadSettings();
+
+    // -------------------
+    // Functions
+    // --------------------------------
+
+    // Load saved options or use defaults
+    function setOtherOptions(settings)
     {
-        var active = "";
-        $(".link-options label").each(function (index)
-        {
-            if ($(this).hasClass("active"))
-            {
-                active = $(this).find("input").attr("name");
-            }
-        });
+        let display = 'title';
+        const $page     = $("#page-url"),
+              $wallabag = $("#wallabag-url");
 
-        switch (active)
-        {
-            case "opt-wallabag-url":
-                return "wallabag";
-                break;
-            case "opt-page-url":
-                return "page";
-                break;
-            default:
-                return "wallabag";
-        }
-    };
-
-    wItOpt.setLinking = function ()
-    {
-        var $page     = $("#page-url");
-        var $wallabag = $("#wallabag-url");
-
-        switch (wItOpt.settings.linking)
+        switch (settings.linking)
         {
             case "page":
                 $page.attr('checked', 'checked');
@@ -53,43 +30,17 @@ $(function ()
                 $wallabag.parent().addClass("active");
                 break;
         }
-    };
 
-    wItOpt.setVersion = function ()
-    {
-        var btnv1 = $('#opt-wallabag-v1');
-        var btnv2 = $('#opt-wallabag-v2');
-
-        switch (wItOpt.settings.version.toString())
+        if (settings.hasOwnProperty('display'))
         {
-            case '1':
-                btnv1.attr('checked', 'checked');
-                btnv1.parent().addClass('active');
-                $('#wallabag-v2').hide();
-                break;
-            default:
-                btnv2.attr('checked', 'checked');
-                btnv2.parent().addClass('active');
-                $('#wallabag-v1').hide();
+            display = settings.display;
         }
-    };
 
-    wItOpt.loadSettings = function ()
-    {
-        var loaded = $.Deferred();
-        chrome.storage.local.get('wallabagItSettings', function (results)
-        {
-            if (results.wallabagItSettings != undefined)
-            {
-                wItOpt.settings = results.wallabagItSettings;
+        $("#opt-display").val(display);
+    }
 
-            }
-            loaded.resolve(true);
-        });
-        return loaded.promise();
-    };
-
-    wItOpt.updateApiStatus = function(status)
+    // Update the API status check section
+    function updateApiStatus(status)
     {
         if (status)
         {
@@ -101,78 +52,75 @@ $(function ()
             $("#requirementInfo").addClass("list-group-item-danger").removeClass("list-group-item-success");
             $("#apiStatus").text("There is an issue with the API settings!");
         }
-    };
+    }
 
-    wItOpt.checkApiStatus = function(url)
+    // Check if API is correctly configured
+    function checkApiStatus()
     {
-        if(url == undefined || url == '')
-        {
-            url = wItOpt.settings.url;
-        }
+        Auth.checkApi().done((token) => {
+            updateApiStatus(token);
+        });
+    }
 
-        switch(wItOpt.settings.version.toString())
-        {
-            case '1':
-                wItOpt.v1.checkUrl(url).done(function(status)
-                {
-                    wItOpt.updateApiStatus(status);
-                });
-                break;
-            default:
-                wItOpt.v2.checkUrl(url).done(function(status)
-                {
-                    wItOpt.updateApiStatus(status);
-                });
-        }
-    };
+    // Save settings
+    function saveSettings()
+    {
+        const url     = Settings.formatUrl($('#api-url').val()),
+              linking = $("[name=opt-linking]:checked").val(),
+              display = $("#opt-display").val(),
+              auth    = {
+                  id: $('#api-client-id').val(),
+                  secret: $('#api-client-secret').val(),
+                  username: $('#wallabag-username').val(),
+                  password: $('#wallabag-password').val()
+              };
+
+        Settings.set('url', url).done(() => {
+            checkApiStatus(url);
+        });
+
+        Settings.set('linking', linking);
+        Settings.set('display', display);
+
+        Settings.set('auth', auth).done(() => {
+            $(".alert").alert().show();
+        });
+    }
+
+    // Load all saved settings
+    function loadSettings()
+    {
+        Settings.getAll().done((results) => {
+            if (results.hasOwnProperty('auth'))
+            {
+                $('#api-client-id').val(results.auth.id);
+                $('#api-client-secret').val(results.auth.secret);
+                $('#wallabag-username').val(results.auth.username);
+                $('#wallabag-password').val(results.auth.password);
+            }
+
+            if (results.hasOwnProperty('url'))
+            {
+                $('#api-url').val(results.url);
+                checkApiStatus(results.url);
+            }
+
+            if (results.hasOwnProperty('display'))
+            {
+                $('#opt-display').val(results.display);
+            }
+
+            setOtherOptions(results);
+        });
+    }
+
+    // -------------------
+    // Actions
+    // --------------------------------
 
     // Get app version and display it
-    var version = chrome.app.getDetails().version;
-    $("#version").html("Version: <strong>" + version + "</strong>");
-
-    $(".alert").alert().hide();
+    $("#version").html("Version: <strong>" + chrome.app.getDetails().version + "</strong>");
 
     // Save all settings
-    $("#save-settings").click(function ()
-    {
-        var url = $('#api-url').val();
-        if(new RegExp(".*\/$", "g").test(url))
-        {
-            url = url.slice(0, -1);
-        }
-        wItOpt.settings.url = (/^(http|https):\/\//i.test(url)) ? url : "http://" + url;
-
-        wItOpt.v1.save();
-        wItOpt.v2.save();
-
-        chrome.storage.local.set({'wallabagItSettings': wItOpt.settings});
-
-        wItOpt.checkApiStatus(url);
-    });
-
-    // Change Wallabag version
-    $("input[name='opt-wallabag-api']").change(function ()
-    {
-        wItOpt.settings.version = $(this).val();
-        $('#wallabag-v2').toggle();
-        $('#wallabag-v1').toggle();
-    });
-
-    // Change linking version
-    $("input[name='opt-linking']").change(function ()
-    {
-        wItOpt.settings.linking = $(this).val();
-    });
-
-    // loading settings
-    wItOpt.loadSettings().done(function ()
-    {
-        wItOpt.setVersion();
-        wItOpt.setLinking();
-
-        wItOpt.v1.load();
-        wItOpt.v2.load();
-
-        wItOpt.checkApiStatus();
-    });
+    $("#save-settings").click(saveSettings);
 });

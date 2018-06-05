@@ -1,0 +1,20 @@
+{
+  "name": "wallabagit",
+  "version": "2.0.0",
+  "description": "WallabagIt is a Chrome extension that integrates with the Wallabag \"Read It When You Want\" app (https://www.wallabag.org/)",
+  "main": "js/popup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "scripts/build.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/faulker/WallabagIt.git"
+  },
+  "author": "Winter Faulk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/faulker/WallabagIt/issues"
+  },
+  "homepage": "https://github.com/faulker/WallabagIt#readme"
+}

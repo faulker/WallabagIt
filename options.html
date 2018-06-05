@@ -14,23 +14,6 @@
 
     <div class="row">
         <div class="col-md-4">
-            <ul class="list-group">
-                <li class="list-group-item text-center">
-                    <div class="btn-group" data-toggle="buttons">
-                        <label class="btn btn-default">
-                            <input type="radio" name="opt-wallabag-api" data-version="2" value="2" id="opt-wallabag-v2" autocomplete="off"> Wallabag v2 API
-                        </label>
-                        <label class="btn btn-default">
-                            <input type="radio" name="opt-wallabag-api" data-version="1" value="1" id="opt-wallabag-v1" autocomplete="off"> Wallabag v1 API
-                        </label>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4">
             <!-- Wallabag v2 -->
             <div id="wallabag-v2">
                 <ul class="list-group">
@@ -68,31 +51,6 @@
                     </li>
                 </ul>
             </div>
-            <!-- Wallabag v1 -->
-            <div id="wallabag-v1">
-                <ul class="list-group">
-                    <li class="list-group-item">
-                        <label>API Key</label>
-                        <small>( Required )</small>
-                        <div class="input-group">
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-cloud"></span></span>
-                            <input type="text" class="form-control" placeholder="API Key" id="api-key">
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <label>API Path</label>
-                        <small>( Required )</small>
-                        <div class="input-group">
-                            <span class="input-group-addon"><span class="glyphicon glyphicon-file"></span></span>
-                            <input type="text" class="form-control" placeholder="API folder name (default: api)" id="api-folder">
-                        </div>
-                    </li>
-                    <li class="list-group-item">
-                        <strong>Requires</strong> that the
-                        <a href="https://github.com/faulker/wallabag_api"><strong>Wallabag API</strong></a> plugin be added to your Wallabag web site.
-                    </li>
-                </ul>
-            </div>
             <ul class="list-group">
                 <li class="list-group-item">
                     <label>Wallabag URL</label>
@@ -101,6 +59,7 @@
                         <span class="input-group-addon"><span class="glyphicon glyphicon-globe"></span></span>
                         <input type="text" class="form-control" placeholder="Your Wallabag URL" id="api-url">
                     </div>
+                    <small class="text-danger">Make sure you Wallabag instants is running on a server running SSL and that you are using the SSL URL (https)</small>
                 </li>
             </ul>
         </div>
@@ -109,7 +68,7 @@
         <div class="col-md-3">
             <ul class="list-group">
                 <li class="list-group-item">
-                    <label>Open link using: </label>
+                    <label>Open link using:</label>
                     <div class="btn-group link-options" data-toggle="buttons">
                         <label class="btn btn-primary">
                             <input type="radio" name="opt-linking" id="wallabag-url" value="wallabag"> Wallabag URL
@@ -118,6 +77,14 @@
                             <input type="radio" name="opt-linking" id="page-url" value="page"> Page URL
                         </label>
                     </div>
+                </li>
+                <li class="list-group-item">
+                    <label>Display Options:</label>
+                    <select id="opt-display" class="form-control">
+                        <option value="title">Title</option>
+                        <option value="title_url">Title/URL</option>
+                        <option value="url">URL</option>
+                    </select>
                 </li>
             </ul>
         </div>
@@ -153,10 +120,9 @@
 </div>
 </body>
 
-<script src="js/jquery-3.1.0.min.js" type="text/javascript"></script>
+<script src="js/jquery.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js" type="text/javascript"></script>
-<script src="js/v2.auth.js" type="text/javascript"></script>
+<script src="js/components/settings.js" type="text/javascript"></script>
+<script src="js/components/auth.js" type="text/javascript"></script>
 <script src="js/options.js" type="text/javascript"></script>
-<script src="js/v1.options.js" type="text/javascript"></script>
-<script src="js/v2.options.js" type="text/javascript"></script>
 </html>
