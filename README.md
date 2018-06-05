@@ -10,6 +10,3 @@ WallabagIt is a Chrome extension that integrates with the Wallabag "Read It When
 3. Put any URL in you wish for the "Redirect URIs", it doesn't matter it is not used by this app
 4. Click "Create a new client" button
 5. Use the "Client ID" and "Client secret" that are created and fill in the field under this apps options page
-
-### If you are using Wallabag v1 then upgrade to v2 or download this 3rd party API add-on
-(https://github.com/faulker/wallabag_api)
