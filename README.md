@@ -2,6 +2,8 @@
 
 WallabagIt is a Chrome extension that integrates with the Wallabag "Read It When You Want" app (https://www.wallabag.org/)
 
+https://chrome.google.com/webstore/detail/wallabagit/peehlcgckcnclnjlndmoddifcicdnabm
+
 ## HOW TO INSTALL:
 
 ### For Wallabag v2 you will need to create a API client:
